@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,17 @@ public class CrawlService {
             driver.get(oliveYoungCreamUrl);
 
             List<String> itemLinks = getItemLinks();
+            for (String itemLink : itemLinks) {
+
+                driver.get(itemLink);
+
+                String image = image();
+                String title = title();
+                String price = price();
+                List<String> reviews = review();
+
+                break;
+            }
 
 
         } finally {
@@ -55,5 +67,41 @@ public class CrawlService {
             links.add(href);
         }
         return links;
+    }
+
+    private String image() {
+
+        WebElement itemImage = driver.findElement(By.cssSelector("div.prd_img"));
+        WebElement imgUrl = itemImage.findElement(By.cssSelector("img"));
+        return imgUrl.getDomAttribute("src");
+    }
+
+    private String title() {
+
+        return driver.findElement(By.cssSelector("p.prd_name")).getText();
+    }
+
+    private String price() {
+
+        WebElement itemPrice2 = driver.findElement(By.cssSelector("span.price-2"));
+        return itemPrice2.findElement(By.cssSelector("strong")).getText();
+    }
+
+    private List<String> review() {
+
+        // 리뷰 페이지로 이동
+        WebElement reviewTab = driver.findElement(By.cssSelector("a.goods_reputation"));
+        reviewTab.click();  // 클릭
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.review_cont div.txt_inner")));
+
+        // 리뷰 수집
+        List<String> reviewList = new ArrayList<>();
+        List<WebElement> reviews = driver.findElements(By.cssSelector("div.review_cont div.txt_inner"));
+        for (WebElement r : reviews) {
+            reviewList.add(r.getText());
+        }
+        return reviewList;
     }
 }
